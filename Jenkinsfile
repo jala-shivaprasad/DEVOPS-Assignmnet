@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "YOUR_DOCKERHUB_USERNAME/devops-assignment"
+        IMAGE_NAME = "shivayadavjala/devops-assignment"
     }
 
     stages {
