@@ -1,4 +1,4 @@
-Deployment Guide
+* Deployment Guide *
 1. Launch EC2 Instance
 Launch an Ubuntu EC2 instance (Free Tier).
 Configure the Security Group to allow ports 22, 80, 5000, and 8080.
