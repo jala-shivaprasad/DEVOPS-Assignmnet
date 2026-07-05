@@ -1,6 +1,9 @@
 pipeline {
-
     agent any
+
+    environment {
+        IMAGE_NAME = "YOUR_DOCKERHUB_USERNAME/devops-assignment"
+    }
 
     stages {
 
@@ -12,26 +15,40 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t devops-app .'
+                sh "docker build -t ${IMAGE_NAME}:latest ."
             }
         }
 
-        stage('Stop Old Container') {
+        stage('Docker Hub Login') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                }
+            }
+        }
+
+        stage('Push Image') {
+            steps {
+                sh "docker push ${IMAGE_NAME}:latest"
+            }
+        }
+
+        stage('Deploy') {
             steps {
                 sh '''
                 docker stop devops-app || true
                 docker rm devops-app || true
-                '''
-            }
-        }
 
-        stage('Run Container') {
-            steps {
-                sh '''
+                docker pull ${IMAGE_NAME}:latest
+
                 docker run -d \
-                --name devops-app \
-                -p 5000:5000 \
-                devops-app
+                    --name devops-app \
+                    -p 5000:5000 \
+                    ${IMAGE_NAME}:latest
                 '''
             }
         }
@@ -40,6 +57,15 @@ pipeline {
             steps {
                 sh 'docker ps'
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'Deployment Successful!'
+        }
+        failure {
+            echo 'Pipeline Failed!'
         }
     }
 }
